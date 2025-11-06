@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SafeCrack — High Scores</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="page scores">
+  <div class="container">
+    <header class="header">
+      <h1>High Scores</h1>
+      <p class="tag">Top local runs — stored in your browser</p>
+    </header>
+
+    <main class="card scores-card">
+      <table id="scoresTable" class="scores-table">
+        <thead>
+          <tr><th>#</th><th>Name</th><th>Score</th><th>Mode</th><th>Diff</th><th>When</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="controls">
+        <button id="clearScores" class="btn ghost">Clear All Scores</button>
+        <a class="btn" href="index.html">Back Home</a>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <small>Saved using localStorage. Clear to wipe it.</small>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // populate table from app.js helper
+    window.addEventListener('DOMContentLoaded', () => {
+      populateHighScoreTable();
+      document.getElementById('clearScores').addEventListener('click', () => {
+        if (confirm('Clear all local high scores?')) {
+          localStorage.removeItem('safecrack_highscores');
+          populateHighScoreTable();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

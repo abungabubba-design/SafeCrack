@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeCrack Game</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="container">
+    <h1>SafeCrack</h1>
+
+    <button id="homeButton">🏠 Home</button>
+
+    <div class="game-area">
+      <div class="riddle-box">
+        <h2 id="riddleText">Riddle goes here...</h2>
+        <input type="text" id="answerInput" placeholder="Type your answer...">
+        <button id="submitAnswer">Submit</button>
+      </div>
+
+      <div class="safe-display">
+        <img id="miniSafe" src="images/safe-locked.png" alt="Safe" />
+        <p id="streakDisplay">Streak: 0</p>
+      </div>
+    </div>
+
+    <p>Score: <span id="scoreDisplay">0</span></p>
+
+    <footer style="text-align:center; margin-top:20px; color:#aaa; font-size:0.9em;">
+      Made by Justin Akande
+    </footer>
+  </div>
+
+  <!-- Sounds -->
+  <audio id="clickSound" src="sounds/click.mp3" preload="auto"></audio>
+  <audio id="successSound" src="sounds/success.mp3" preload="auto"></audio>
+  <audio id="vaultSound" src="sounds/vault.mp3" preload="auto"></audio>
+
+  <script>
+    const difficulties = {
+      easy: [
+        { question: "What is 2 + 2?", answer: ["4"] },
+        { question: "What color is the sky on a clear day?", answer: ["blue"] },
+        { question: "What is 5 - 3?", answer: ["2"] }
+      ],
+      medium: [
+        { question: "I speak without a mouth. What am I?", answer: ["echo", "an echo"] },
+        { question: "What has keys but can't open locks?", answer: ["piano", "keyboard"] },
+        { question: "What runs but never walks?", answer: ["water", "river"] }
+      ],
+      hard: [
+        { question: "The more you take, the more you leave behind. What am I?", answer: ["footsteps", "steps"] },
+        { question: "I am always hungry and must be fed. What am I?", answer: ["fire"] },
+        { question: "What has hands but can't clap?", answer: ["clock", "watch"] }
+      ],
+      insane: [
+        { question: "What disappears as soon as you say its name?", answer: ["silence"] },
+        { question: "I can fly without wings. What am I?", answer: ["time", "the time"] },
+        { question: "I am taken from a mine, and shut up in a wooden case, from which I am never released. What am I?", answer: ["pencil lead", "lead"] }
+      ]
+    };
+
+    function generateMathQuestion(level) {
+      const a = Math.floor(Math.random() * (level * 10)) + 1;
+      const b = Math.floor(Math.random() * (level * 10)) + 1;
+      return { question: `What is ${a} + ${b}?`, answer: [(a + b).toString()] };
+    }
+
+    // --- Game State ---
+    let selectedMode = localStorage.getItem("safecrackMode") || "classic";
+    let currentDifficulty = localStorage.getItem("safecrackDifficulty") || "easy";
+
+    document.body.className = currentDifficulty + (selectedMode === "heist" ? " heist" : "");
+
+    let streak = 0;
+    let score = parseInt(localStorage.getItem("safecrackScore")) || 0;
+    let highScore = parseInt(localStorage.getItem("safecrackHighScore")) || 0;
+    let currentRiddle = null;
+    let usedRiddles = [];
+
+    const riddleText = document.getElementById("riddleText");
+    const answerInput = document.getElementById("answerInput");
+    const submitAnswer = document.getElementById("submitAnswer");
+    const miniSafe = document.getElementById("miniSafe");
+    const streakDisplay = document.getElementById("streakDisplay");
+    const scoreDisplay = document.getElementById("scoreDisplay");
+    const homeButton = document.getElementById("homeButton");
+
+    const clickSound = document.getElementById("clickSound");
+    const successSound = document.getElementById("successSound");
+    const vaultSound = document.getElementById("vaultSound");
+
+    function getRandomQuestion() {
+      if (Math.random() < 0.3) {
+        let level = { easy:1, medium:2, hard:3, insane:5 }[currentDifficulty];
+        return generateMathQuestion(level);
+      }
+      const pool = difficulties[currentDifficulty].filter(q => !usedRiddles.includes(q.question));
+      if (pool.length === 0) {
+        usedRiddles = [];
+        return getRandomQuestion();
+      }
+      const riddle = pool[Math.floor(Math.random() * pool.length)];
+      usedRiddles.push(riddle.question);
+      return riddle;
+    }
+
+    function updateDifficulty() {
+      if (streak >= 10) currentDifficulty = "insane";
+      else if (streak >= 7) currentDifficulty = "hard";
+      else if (streak >= 4) currentDifficulty = "medium";
+      else currentDifficulty = "easy";
+
+      document.body.className = currentDifficulty + (selectedMode === "heist" ? " heist" : "");
+    }
+
+    function loadRiddle() {
+      currentRiddle = getRandomQuestion();
+      riddleText.textContent = currentRiddle.question;
+      answerInput.value = "";
+      answerInput.focus();
+      scoreDisplay.textContent = score;
+      streakDisplay.textContent = "Streak: " + streak;
+    }
+
+    function checkAnswer(userAnswer) {
+      userAnswer = userAnswer.trim().toLowerCase();
+      let correct = false;
+
+      if (Array.isArray(currentRiddle.answer)) {
+        correct = currentRiddle.answer.some(ans => ans.toLowerCase() === userAnswer);
+      } else {
+        correct = userAnswer === currentRiddle.answer.toLowerCase();
+      }
+
+      const riddleBox = document.querySelector(".riddle-box");
+
+      if (correct) {
+        successSound.play();
+        score += 10;
+        streak++;
+        riddleBox.classList.add("correct");
+        setTimeout(() => riddleBox.classList.remove("correct"), 500);
+
+        if (streak % 5 === 0) {
+          vaultSound.play();
+          score += 50;
+          miniSafe.src = "images/safe-golden.png";
+          miniSafe.classList.add("bonus");
+          setTimeout(() => {
+            miniSafe.src = "images/safe-locked.png";
+            miniSafe.classList.remove("bonus");
+          }, 2000);
+        } else {
+          miniSafe.src = "images/safe-unlocked.png";
+          setTimeout(() => { miniSafe.src = "images/safe-locked.png"; }, 1000);
+        }
+      } else {
+        streak = 0;
+        riddleBox.classList.add("wrong");
+        setTimeout(() => riddleBox.classList.remove("wrong"), 500);
+      }
+
+      streakDisplay.classList.add("flash");
+      setTimeout(() => streakDisplay.classList.remove("flash"), 500);
+
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("safecrackHighScore", highScore);
+      }
+
+      updateDifficulty();
+      localStorage.setItem("safecrackScore", score);
+      loadRiddle();
+    }
+
+    submitAnswer.addEventListener("click", () => {
+      clickSound.play();
+      checkAnswer(answerInput.value);
+    });
+
+    answerInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        clickSound.play();
+        checkAnswer(answerInput.value);
+      }
+    });
+
+    homeButton.addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+
+    loadRiddle();
+  </script>
+</body>
+</html>
