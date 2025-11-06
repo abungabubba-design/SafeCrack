@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafeCrack Shop</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+    
+    body {
+      font-family: 'Orbitron', sans-serif;
+      margin: 0;
+      color: #fff;
+      text-align:center;
+      overflow-x:hidden;
+    }
+
+    .shop-container {
+      padding:30px;
+      animation: fadeIn 1.2s ease-in;
+    }
+
+    h1 { font-size:2.5em; margin-bottom:5px; text-shadow:0 0 10px #fff,0 0 20px #ff6ec7; }
+    p { margin:5px; font-size:1.2em; }
+
+    .shop-items {
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      margin-top:20px;
+    }
+
+    .shop-item {
+      border-radius:20px;
+      padding:20px;
+      margin:10px;
+      width:200px;
+      text-align:center;
+      transition:transform 0.3s;
+      border:2px solid #fff;
+      box-shadow:0 0 20px rgba(255,255,255,0.6);
+      backdrop-filter:blur(5px);
+    }
+    .shop-item:hover{ transform:scale(1.05); }
+
+    .shop-item img{ width:100px; margin-bottom:10px; filter:drop-shadow(0 0 10px #ff6ec7); }
+
+    button {
+      padding:10px 20px;
+      font-weight:bold;
+      border-radius:15px;
+      border:none;
+      cursor:pointer;
+      margin-top:5px;
+      transition:0.3s;
+    }
+
+    .shop-footer { margin-top:30px; }
+    .shop-footer button{
+      padding:12px 30px; font-size:1.1em; background:#ff6ec7; color:#fff;
+      border-radius:15px; border:none; cursor:pointer;
+      box-shadow:0 0 10px #fff,0 0 20px #00f0ff;
+    }
+    .shop-footer button:hover { background:#00f0ff; color:#111; transform:scale(1.05); }
+
+    @keyframes fadeIn{ from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
+  </style>
+</head>
+<body>
+  <div class="shop-container">
+    <header>
+      <h1>🛒 SafeCrack Shop</h1>
+      <p>Spend points to unlock new safes and themes!</p>
+      <p id="pointsDisplay">Points: 0</p>
+    </header>
+
+    <div class="shop-items" id="shopItems">
+      <!-- Shop items will be generated dynamically -->
+    </div>
+
+    <footer class="shop-footer">
+      <button onclick="goHome()">🏠 Home</button>
+    </footer>
+  </div>
+
+  <script>
+    let points = localStorage.getItem("points") ? parseInt(localStorage.getItem("points")) : 0;
+    const pointsDisplay = document.getElementById("pointsDisplay");
+    const shopItemsContainer = document.getElementById("shopItems");
+    const mode = localStorage.getItem("mode") || "classic";
+
+    const safes = [
+      {name:"Classic Safe", img:"images/safe1.png", cost:0},
+      {name:"Neon Safe", img:"images/safe2.png", cost:50},
+      {name:"Gold Safe", img:"images/safe3.png", cost:100},
+      {name:"Shadow Safe", img:"images/safe4.png", cost:150}
+    ];
+
+    // Adjust shop theme based on mode
+    if(mode === "classic"){
+      document.body.style.background = "linear-gradient(135deg,#ffecd2,#fcb69f)";
+      document.body.style.color = "#111";
+    } else {
+      document.body.style.background = "linear-gradient(135deg,#0f0c29,#302b63,#24243e)";
+      document.body.style.color = "#0ff";
+    }
+
+    function updatePointsDisplay(){ pointsDisplay.textContent = `Points: ${points}`; localStorage.setItem("points", points); }
+
+    function createShopItem(item){
+      const div = document.createElement("div");
+      div.classList.add("shop-item");
+      div.innerHTML = `
+        <img src="${item.img}" alt="${item.name}" />
+        <p>${item.name} — ${item.cost === 0 ? "Free" : item.cost+" points"}</p>
+        <button onclick="${item.cost===0 ? `selectSafe('${item.img}',0)` : `buySafe('${item.img}',${item.cost})`}">
+          ${item.cost===0 ? "Select" : "Buy"}
+        </button>
+      `;
+      shopItemsContainer.appendChild(div);
+    }
+
+    safes.forEach(createShopItem);
+
+    function selectSafe(safeImg,cost){
+      if(cost===0 || localStorage.getItem(safeImg)){
+        localStorage.setItem("currentSafe", safeImg);
+        alert(`✅ ${safeImg.split('/')[1]} selected!`);
+      } else { alert("❌ You need to buy this safe first!"); }
+    }
+
+    function buySafe(safeImg,cost){
+      if(points>=cost){
+        points -= cost; updatePointsDisplay();
+        localStorage.setItem("currentSafe", safeImg);
+        localStorage.setItem(safeImg,"owned");
+        alert(`🎉 You bought ${safeImg.split('/')[1]}!`);
+      } else { alert("❌ Not enough points!"); }
+    }
+
+    function goHome(){ window.location.href="index.html"; }
+
+    updatePointsDisplay();
+  </script>
+</body>
+</html>

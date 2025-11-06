@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafeCrack Home</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+    body {
+      font-family: 'Orbitron', sans-serif;
+      margin: 0;
+      text-align: center;
+      color: #fff;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+    }
+    .home-container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 1.2s ease-in;
+    }
+    h1 { font-size: 3em; text-shadow: 0 0 10px #fff, 0 0 20px #ff6ec7; margin-bottom:10px;}
+    #credit { font-size: 0.9em; margin-bottom: 40px; color:#333;}
+    #highScoreDisplay { font-size:1.5em; margin-bottom:30px; text-shadow:0 0 8px #fff; }
+    button { padding:15px 40px; font-size:1.2em; margin:10px; border-radius:15px; border:none; cursor:pointer; font-weight:bold; transition:0.3s; box-shadow:0 0 10px #fff, 0 0 20px #ff6ec7; }
+    #playButton { background:#00f0ff; color:#111; }
+    #playButton:hover { background:#ff6ec7; color:#fff; transform:scale(1.05);}
+    #shopButton { background:#ff6ec7; color:#fff; }
+    #shopButton:hover { background:#00f0ff; color:#111; transform:scale(1.05);}
+    #classicMode { background:#ffd700; color:#111; }
+    #heistMode { background:#111; color:#00ffea; }
+    #classicMode:hover { transform:scale(1.05); }
+    #heistMode:hover { transform:scale(1.05); }
+    @keyframes fadeIn { from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
+    @keyframes gradientBG {0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+  </style>
+</head>
+<body>
+  <div class="home-container">
+    <h1>🔐 SafeCrack</h1>
+    <p id="credit">Made by Justin Akande</p>
+    <p id="highScoreDisplay">High Score: 0</p>
+
+    <div>
+      <p>Select Mode:</p>
+      <button id="classicMode">Classic Mode</button>
+      <button id="heistMode">Heist Mode</button>
+    </div>
+
+    <button id="playButton">▶ Play</button>
+    <button id="shopButton">🛒 Shop</button>
+  </div>
+
+  <script>
+    // Display high score
+    const highScore = localStorage.getItem("highScore") || 0;
+    document.getElementById("highScoreDisplay").textContent = `High Score: ${highScore}`;
+
+    // Mode selection
+    document.getElementById("classicMode").addEventListener("click", () => { localStorage.setItem("mode","classic"); alert("Classic Mode Selected!"); });
+    document.getElementById("heistMode").addEventListener("click", () => { localStorage.setItem("mode","heist"); alert("Heist Mode Selected!"); });
+
+    document.getElementById("playButton").addEventListener("click", () => { window.location.href="game.html"; });
+    document.getElementById("shopButton").addEventListener("click", () => { window.location.href="shop.html"; });
+  </script>
+</body>
+</html>
