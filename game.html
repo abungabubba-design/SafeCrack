@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Safe Cracker Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body id="gameBody">
+  <div class="game-container">
+    <header>
+      <h1>🔐 Safe Cracker Challenge</h1>
+      <p id="modeDisplay"></p>
+      <p id="difficultyDisplay"></p>
+    </header>
+
+    <div class="stats">
+      <p id="score">Score: 0</p>
+      <p id="streak">Streak: 0</p>
+    </div>
+
+    <div class="question-box">
+      <h2 id="question">Press Start to Begin!</h2>
+      <input type="text" id="answer" placeholder="Type your answer..." />
+      <button id="submitAnswer">Submit</button>
+      <p id="message"></p>
+    </div>
+
+    <div class="safe-section">
+      <img id="safeImage" src="images/safe1.png" alt="Safe" />
+    </div>
+
+    <div class="controls">
+      <button id="startGame">Start Game</button>
+      <button id="homeButton">🏠 Return Home</button>
+    </div>
+
+    <footer>
+      <p>Made by <strong>Justin Akande</strong></p>
+    </footer>
+  </div>
+
+  <script>
+    // --- Load mode and difficulty ---
+    const mode = localStorage.getItem("mode") || "classic";
+    const difficulty = localStorage.getItem("difficulty") || "easy";
+    document.getElementById("modeDisplay").textContent = "Mode: " + mode.toUpperCase();
+    document.getElementById("difficultyDisplay").textContent = "Difficulty: " + difficulty.toUpperCase();
+
+    // --- Apply theme based on mode ---
+    const body = document.getElementById("gameBody");
+    if (mode === "classic") {
+      body.style.background = "linear-gradient(135deg, #ffecd2, #fcb69f)";
+      body.style.color = "#2c2c2c";
+    } else {
+      body.style.background = "linear-gradient(135deg, #0f0c29, #302b63, #24243e)";
+      body.style.color = "#00fff7";
+    }
+
+    // --- Difficulty-Based Question Pools ---
+    const questionBank = {
+      easy: [
+        { question: "What has keys but can’t open locks?", answer: "piano" },
+        { question: "What has hands but can’t clap?", answer: "clock" },
+        { question: "What gets wetter the more it dries?", answer: "towel" },
+        { question: "What has a head and a tail but no body?", answer: "coin" },
+        { question: "What can you catch but not throw?", answer: "cold" }
+      ],
+      normal: [
+        { question: "What can travel around the world while staying in the corner?", answer: "stamp" },
+        { question: "The more you take, the more you leave behind. What am I?", answer: "footsteps" },
+        { question: "What month of the year has 28 days?", answer: "all" },
+        { question: "What is always in front of you but can’t be seen?", answer: "future" },
+        { question: "What begins with T, ends with T, and has T in it?", answer: "teapot" }
+      ],
+      hard: [
+        { question: "What comes once in a minute, twice in a moment, but never in a thousand years?", answer: "m" },
+        { question: "I speak without a mouth and hear without ears. What am I?", answer: "echo" },
+        { question: "The person who makes it has no need of it. What is it?", answer: "coffin" },
+        { question: "What goes up but never comes down?", answer: "age" },
+        { question: "What can fill a room but takes up no space?", answer: "light" }
+      ],
+      insane: [
+        { question: "The more you take away from me, the larger I get. What am I?", answer: "hole" },
+        { question: "What disappears as soon as you say its name?", answer: "silence" },
+        { question: "What has cities, but no houses; forests, but no trees; and water, but no fish?", answer: "map" },
+        { question: "What’s seen once in June, twice in November, and not at all in May?", answer: "e" },
+        { question: "Feed me and I live, yet give me a drink and I die. What am I?", answer: "fire" }
+      ]
+    };
+
+    // --- Game State ---
+    let remainingQuestions = [];
+    let score = 0;
+    let streak = 0;
+    let gameStarted = false;
+
+    // --- Functions ---
+    function startGame() {
+      remainingQuestions = [...questionBank[difficulty]];
+      score = 0;
+      streak = 0;
+      gameStarted = true;
+      showNextQuestion();
+      updateDisplay();
+      document.getElementById("message").textContent = "Game started!";
+    }
+
+    function getNewQuestion() {
+      if (remainingQuestions.length === 0) {
+        remainingQuestions = [...questionBank[difficulty]];
+      }
+      const index = Math.floor(Math.random() * remainingQuestions.length);
+      return remainingQuestions.splice(index, 1)[0];
+    }
+
+    function showNextQuestion() {
+      const q = getNewQuestion();
+      document.getElementById("question").textContent = q.question;
+      document.getElementById("answer").dataset.correctAnswer = q.answer.toLowerCase();
+    }
+
+    function checkAnswer() {
+      if (!gameStarted) return;
+      const userAnswer = document.getElementById("answer").value.trim().toLowerCase();
+      const correct = document.getElementById("answer").dataset.correctAnswer;
+      const message = document.getElementById("message");
+
+      if (userAnswer === correct) {
+        const multiplier = getScoreMultiplier(difficulty);
+        score += 10 * multiplier;
+        streak++;
+        message.textContent = `✅ Correct! (+${10 * multiplier})`;
+        animateSafe();
+        if (streak % 5 === 0) message.textContent += " 🔥 Streak bonus!";
+      } else {
+        message.textContent = `❌ Wrong! The answer was "${correct}".`;
+        streak = 0;
+      }
+
+      document.getElementById("answer").value = "";
+      updateDisplay();
+      showNextQuestion();
+    }
+
+    function getScoreMultiplier(difficulty) {
+      switch (difficulty) {
+        case "easy": return 1;
+        case "normal": return 1.5;
+        case "hard": return 2;
+        case "insane": return 3;
+        default: return 1;
+      }
+    }
+
+    function updateDisplay() {
+      document.getElementById("score").textContent = "Score: " + score;
+      document.getElementById("streak").textContent = "Streak: " + streak;
+    }
+
+    function animateSafe() {
+      const safe = document.getElementById("safeImage");
+      safe.classList.add("shake");
+      setTimeout(() => safe.classList.remove("shake"), 500);
+    }
+
+    // --- Event Listeners ---
+    document.getElementById("submitAnswer").addEventListener("click", checkAnswer);
+    document.getElementById("startGame").addEventListener("click", startGame);
+    document.getElementById("homeButton").addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>
